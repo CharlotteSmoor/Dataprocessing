@@ -32,17 +32,32 @@ def extract_tvseries(dom):
     # NOTE: FOR THIS EXERCISE YOU ARE ALLOWED (BUT NOT REQUIRED) TO IGNORE
     # UNICODE CHARACTERS AND SIMPLY LEAVE THEM OUT OF THE OUTPUT.
 
-    # return []   # REPLACE THIS LINE AS WELL AS APPROPRIATE
+    titles = []
+    ratings = []
+    genres = []
 
-    tvseries = dom.find_all('div', class_ = 'lister-item mode-advanced')
+    tv_series = dom.find_all('div', class_ = 'lister-item mode-advanced')
 
-    for show in tvseries:
+    for show in tv_series:
         title = show.h3.a.text
+        titles.append(title)
+
         rating = float(show.strong.text)
-        genre = show.find(class_ = 'genre')
-        print(title, rating, genre)
+        ratings.append(rating)
 
+        genre = show.find('span', class_ = 'genre').text
+        genres.append(genre)
 
+        actors = show.select("p > a")
+        tv_actors = []
+        for actor in actors:
+            tv_actors.append(actor.find(text = True))
+        serie_actors = ','.join(tv_actors)
+
+        runtime = show.find('span', class_ = 'runtime').text
+        print(title, rating, genre, serie_actors, runtime)
+
+    
 
 def save_csv(outfile, tvseries):
     """
@@ -50,6 +65,9 @@ def save_csv(outfile, tvseries):
     """
     writer = csv.writer(outfile)
     writer.writerow(['Title', 'Rating', 'Genre', 'Actors', 'Runtime'])
+
+    for show in tv_series:
+        writer.writerow(show)
 
     # ADD SOME CODE OF YOURSELF HERE TO WRITE THE TV-SERIES TO DISK
 
