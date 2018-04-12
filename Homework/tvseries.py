@@ -32,46 +32,25 @@ def extract_tvseries(dom):
     # NOTE: FOR THIS EXERCISE YOU ARE ALLOWED (BUT NOT REQUIRED) TO IGNORE
     # UNICODE CHARACTERS AND SIMPLY LEAVE THEM OUT OF THE OUTPUT.
 
-    all_series = []
-    tv_series = dom.find_all('div', class_ = 'lister-item mode-advanced')
+    # return []   # REPLACE THIS LINE AS WELL AS APPROPRIATE
 
-    for show in tv_series:
-        series = []
+    tvseries = dom.find_all('div', class_ = 'lister-item mode-advanced')
+
+    for show in tvseries:
         title = show.h3.a.text
-        series.append(title)
-
         rating = float(show.strong.text)
-        series.append(rating)
+        genre = show.h3.a.find('span', class_ = 'genre').text
+        print(title, rating, genre)
+    print("hello")
 
-        genre = show.find('span', class_ = 'genre').text
-        genre = genre.strip()
-        series.append(genre)
 
-        actors = show.select("p > a")
-        tv_actors = []
-        for actor in actors:
-            tv_actors.append(actor.find(text = True))
-        serie_actors = ','.join(tv_actors)
-        series.append(serie_actors)
 
-        runtime = show.find('span', class_ = 'runtime').text
-        runtime = runtime.strip("min")
-        series.append(runtime)
-
-        all_series.append(series)
-
-    return all_series
-        #print(title, rating, genre, serie_actors, runtime)
-
-def save_csv(outfile, all_series):
+def save_csv(outfile, tvseries):
     """
     Output a CSV file containing highest rated TV-series.
     """
     writer = csv.writer(outfile)
     writer.writerow(['Title', 'Rating', 'Genre', 'Actors', 'Runtime'])
-
-    for show in all_series:
-        writer.writerow(show)
 
     # ADD SOME CODE OF YOURSELF HERE TO WRITE THE TV-SERIES TO DISK
 
