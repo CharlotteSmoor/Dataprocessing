@@ -1,6 +1,6 @@
 #!/usr/bin/env python
-# Name:
-# Student number:
+# Name: Charlotte Smoor
+# Student number: 10786902
 """
 This script scrapes IMDB and outputs a CSV file with highest rated tv series.
 """
@@ -10,6 +10,7 @@ from requests import get
 from requests.exceptions import RequestException
 from contextlib import closing
 from bs4 import BeautifulSoup
+import re
 
 TARGET_URL = "http://www.imdb.com/search/title?num_votes=5000,&sort=user_rating,desc&start=1&title_type=tv_series"
 BACKUP_HTML = 'tvseries.html'
@@ -33,20 +34,26 @@ def extract_tvseries(dom):
     # UNICODE CHARACTERS AND SIMPLY LEAVE THEM OUT OF THE OUTPUT.
 
     all_series = []
+
+    # find all tv series within tags
     tv_series = dom.find_all('div', class_ = 'lister-item mode-advanced')
 
+    # iterate over series and find title and store in empty list
     for show in tv_series:
         series = []
         title = show.h3.a.text
         series.append(title)
 
+        # find rating and store in list
         rating = float(show.strong.text)
         series.append(rating)
 
+        # find genre and store in list
         genre = show.find('span', class_ = 'genre').text
         genre = genre.strip()
         series.append(genre)
 
+        # select actors and store in list
         actors = show.select("p > a")
         tv_actors = []
         for actor in actors:
@@ -54,14 +61,13 @@ def extract_tvseries(dom):
         serie_actors = ','.join(tv_actors)
         series.append(serie_actors)
 
-        runtime = show.find('span', class_ = 'runtime').text
-        runtime = runtime.strip("min")
+        # find running time in minutes and store in list
+        runtime = re.sub(r'\D', '', show.find('span', class_ = 'runtime').text)
         series.append(runtime)
 
         all_series.append(series)
 
     return all_series
-        #print(title, rating, genre, serie_actors, runtime)
 
 def save_csv(outfile, all_series):
     """
