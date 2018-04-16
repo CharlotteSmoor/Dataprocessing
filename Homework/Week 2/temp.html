@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>KNMI average temperature of 2015</title>
+</head>
+<body>
+<header> Average temperature in 2015 </header>
+<textarea id="rawdata">
+  #date,maxtemp
+
+  </textarea>
+
+<script type = 'text/javascript'>
+    let data = document.getElementById("rawdata").outerHTML.split("/n");
+    console.log(data)
+    for(let i = 1; i < data.length - 1; i++){
+      let split = data[i].split(",");
+      console.log(split);
+    }
+
+  </script>
+</body>
+</html>
