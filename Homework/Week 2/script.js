@@ -40,13 +40,11 @@ if (document.getElementById('myCanvas')) {
   ctx.stroke();
 
   // x-axis text
-  for (let i = 0; i < 8; i ++)
-  {
+  for (let i = 0; i < 8; i ++) {
   	ctx.fillText(eval("i * 50"), 50 + i * 50 * 1.5, 520);
   }
 
-  for (let i = 0; i < 6; i++)
-  {
+  for (let i = 0; i < 6; i++) {
     ctx.beginPath();
     ctx.moveTo(50, 500 - i * 50 * 1.5);
     ctx.lineTo(597.5, 500 - i * 50 * 1.5);
