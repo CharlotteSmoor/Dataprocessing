@@ -1,0 +1,72 @@
+Barchart representing information about politicians having affairs
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <title>Barchart showing politicans having an affair</title>
+        <script type="text/javascript" src="d3/d3.v3.js"></script>
+        <style type="text/css">
+
+    			div.bar {
+    				display: inline-block;
+    				width: 20px;
+    				height: 75px;
+    				background-color: teal;
+    			}
+
+    
+		</style>
+    </head>
+    <body>
+        <script type="text/javascript">
+            d3.select("body").append("p").text("Charlotte Smoor (10786902)");
+            d3.select("body").append("p").text("This barchart represents a dataset from 1978 which cointains information about politicians having affairs. ");
+            d3.select("body").append("p").text("The goal of the dataset is to find characteristics that make it more plausable for a politician to have an affair.");
+            d3.select("body").append("p").text("The dataset is obtained from http://koaning.io/fun-datasets.html");
+
+    var dataset = [];
+    var fem_age1 = fem_age2 = fem_age3 = fem_age4 = 0;
+    var male_age1 = male_age2 = male_age3 = male_age4 = 0;
+    var total = 601;
+
+    d3.json("/affairs.json", function(data) {
+        for (var i=0; i < data.length; i++){
+          if(data[i].sex == "female" && data[i].age <= 25){
+            fem_age1++;
+          }
+          else if(data[i].sex == "male" && data[i].age <= 25){
+            male_age1++;
+          }
+          if (data[i].sex == "female" && data[i].age > 25 && data[i].age <= 35){
+            fem_age2++;
+          }
+          else if(data[i].sex == "male" && data[i].age > 25 && data[i].age <= 35){
+            male_age2++;
+          }
+          if (data[i].sex == "female" && data[i].age > 35 && data[i].age <= 45){
+            fem_age3++;
+          }
+          else if(data[i].sex == "male" && data[i].age > 35 && data[i].age <= 45){
+            male_age3++;
+          }
+          if (data[i].sex == "female" && data[i].age >= 45){
+            fem_age4++;
+          }
+          else if(data[i].sex == "male" && data[i].age >= 45){
+            male_age4++;
+          }
+        }
+        dataset.push(fem_age1, fem_age2, fem_age3, fem_age4, male_age1, male_age2, male_age3, male_age4);
+
+  });
+
+        d3.select("body").selectAll("div")
+        .data(dataset)
+        .enter()
+        .append("div")
+        .attr("class", "bar");
+
+
+        </script>
+    </body>
+</html>
