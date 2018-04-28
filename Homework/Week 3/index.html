@@ -1,70 +1,138 @@
-Barchart representing information about politicians having affairs
 <!DOCTYPE html>
 <html lang="en">
     <head>
         <meta charset="utf-8">
-        <title>Barchart showing politicans having an affair</title>
+        <title>Pokémon</title>
         <script type="text/javascript" src="d3/d3.v3.js"></script>
         <style type="text/css">
 
-    			div.bar {
-    				display: inline-block;
-    				width: 20px;
-    				height: 75px;
-    				background-color: teal;
-    			}
+        .axis path,
+        .axis line {
+            fill: none;
+            stroke: black;
+            shape-rendering: crispEdges;
+        }
+        .axis text {
+            font-family: Helvetica;
+            font-size: 11px;
+        }
+        .bar {
+          fill: lightpink;
+        }
+        .bar:hover {
+          fill: hotpink;
+        }
 
-    
 		</style>
     </head>
     <body>
-        <script type="text/javascript">
-            d3.select("body").append("p").text("Charlotte Smoor (10786902)");
-            d3.select("body").append("p").text("This barchart represents a dataset from 1978 which cointains information about politicians having affairs. ");
-            d3.select("body").append("p").text("The goal of the dataset is to find characteristics that make it more plausable for a politician to have an affair.");
-            d3.select("body").append("p").text("The dataset is obtained from http://koaning.io/fun-datasets.html");
 
-    var dataset = [];
-    var fem_age1 = fem_age2 = fem_age3 = fem_age4 = 0;
-    var male_age1 = male_age2 = male_age3 = male_age4 = 0;
-    var total = 601;
+    <script type="text/javascript">
 
-    d3.json("/affairs.json", function(data) {
-        for (var i=0; i < data.length; i++){
-          if(data[i].sex == "female" && data[i].age <= 25){
-            fem_age1++;
-          }
-          else if(data[i].sex == "male" && data[i].age <= 25){
-            male_age1++;
-          }
-          if (data[i].sex == "female" && data[i].age > 25 && data[i].age <= 35){
-            fem_age2++;
-          }
-          else if(data[i].sex == "male" && data[i].age > 25 && data[i].age <= 35){
-            male_age2++;
-          }
-          if (data[i].sex == "female" && data[i].age > 35 && data[i].age <= 45){
-            fem_age3++;
-          }
-          else if(data[i].sex == "male" && data[i].age > 35 && data[i].age <= 45){
-            male_age3++;
-          }
-          if (data[i].sex == "female" && data[i].age >= 45){
-            fem_age4++;
-          }
-          else if(data[i].sex == "male" && data[i].age >= 45){
-            male_age4++;
+      // create a titel
+    	d3.select("body")
+	    .append("h2")
+	    .text("Pokémon");
+
+    	// provide name and student number
+    	d3.select("body")
+	    .append("h5")
+	    .text("Charlotte Smoor (10786902)");
+
+    	// create a paragraph containing information
+    	d3.select("body")
+    	    .append("p")
+    	    .text("This barchart represents a dataset which cointains all pokemon. The goal of the dataset is to group all the types of pokemon. The dataset is obtained from https://www.kaggle.com/shikhar1/pokemon");
+
+    d3.json("/pokemon.json", function(data) {
+
+      var type = ["Grass", "Fire", "Water", "Bug", "Normal", "Poison",
+      "Electric", "Ground", "Fairy", "Fighting", "Psychic", "Rock", "Ghost",
+      "Ice", "Dragon", "Dark", "Steel"];
+
+      var pokemon_types = [];
+      for (var i = 0;  i < type.length; i++){
+        var count = 0
+
+        for (var j = 0; j < data.length; j++){
+          if (data[j].type  == type[i]){
+                  count += 1
           }
         }
-        dataset.push(fem_age1, fem_age2, fem_age3, fem_age4, male_age1, male_age2, male_age3, male_age4);
+        pokemon_types.push(count);
+      }
+      var pokemon_length = pokemon_types.length
+
+      // set margin, width and height
+      var margin = {top: 10, right: 10, bottom: 50, left: 50};
+      var padding = 1;
+      var fullwidth = 750;
+      var fullheight = 400;
+      var width = 700 - margin.left - margin.right;
+      var height = 350 - margin.top - margin.bottom;
+
+      // Create SVG element
+      var svg = d3.select("body")
+        .append("svg")
+         .attr("width", fullwidth)
+         .attr("height", fullheight)
+        .append("g")
+         .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+     var x = d3.scale.ordinal()
+         .domain(type)
+         .rangeRoundBands([0, width]);
+
+     var y = d3.scale.linear()
+        .domain([0, 50])
+        .range([height, margin.top]);
+
+     var xAxis = d3.svg.axis()
+         .scale(x)
+         .orient("bottom")
+         .ticks(5);
+
+     var yAxis = d3.svg.axis()
+         .scale(y)
+         .orient("left")
+         .ticks(5);
+
+      // create bars
+      svg.selectAll("rect")
+        .data(pokemon_types)
+        .enter()
+        .append("rect")
+        .attr("class", "bar")
+        .attr("x", function (d, i){ return ((i * width + padding) / pokemon_length);})
+        .attr("y", function (d){ return y(d);})
+        .attr("width", (width/pokemon_length))
+        .attr("height", function (d){ return height - y(d) - margin.top;})
+
+      svg.append("g")
+           .attr("class", "x axis")
+           .attr("transform", "translate(0," + (height - margin.top) + ")")
+           .call(xAxis)
+           .selectAll("text")
+            .style("text-anchor", "end")
+            .attr("dx", "-.8em")
+            .attr("dy", ".15em")
+            .attr("transform", function(d) {
+                return "rotate(-65)"
+                });
+
+      svg.append("g")
+          .attr("class", "y axis")
+          .call(yAxis)
+        .append("text")
+          .text("# Pokémons")
+          .style("text-anchor", "end")
+          .attr("y", -35)
+          .attr("dy", ".201em")
+          .attr("transform", "rotate(-90)");
 
   });
 
-        d3.select("body").selectAll("div")
-        .data(dataset)
-        .enter()
-        .append("div")
-        .attr("class", "bar");
+
 
 
         </script>

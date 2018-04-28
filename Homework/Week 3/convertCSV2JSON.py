@@ -2,7 +2,8 @@ import csv
 import sys
 import json
 
-fieldNames = ("sex","age","child","religious","education","occupation","nbaffairs")
+fieldNames = ("number","name", "type")
+
 
 # https://jaranto.blogspot.nl/2012/12/transform-csv-file-to-json-file-with.html
 def convert(filename):
