@@ -4,8 +4,10 @@
         <meta charset="utf-8">
         <title>Pokémon</title>
         <script type="text/javascript" src="d3/d3.v3.js"></script>
+        <script src="http://labratrevenge.com/d3-tip/javascripts/d3.tip.v0.6.3.js"></script>
         <style type="text/css">
 
+        /* style axes */
         .axis path,
         .axis line {
             fill: none;
@@ -16,23 +18,38 @@
             font-family: Helvetica;
             font-size: 11px;
         }
+        /*style bars */
         .bar {
           fill: lightpink;
         }
         .bar:hover {
           fill: hotpink;
         }
+        /* style tooltip */
+        .d3-tip {
+        line-height: 1;
+        font-weight: bold;
+        padding: 12px;
+        background: rgba(0, 0, 0, 0.8);
+        color: #fff;
+        border-radius: 2px;
+        }
 
+        .d3-tip.n:after {
+          margin: -1px 0 0 0;
+          top: 100%;
+          left: 0;
+        }
 		</style>
     </head>
     <body>
 
     <script type="text/javascript">
 
-      // create a titel
+      // create title
     	d3.select("body")
-	    .append("h2")
-	    .text("Pokémon");
+	    .append("h1")
+	    .text("Types of pokémon");
 
     	// provide name and student number
     	d3.select("body")
@@ -41,99 +58,112 @@
 
     	// create a paragraph containing information
     	d3.select("body")
-    	    .append("p")
-    	    .text("This barchart represents a dataset which cointains all pokemon. The goal of the dataset is to group all the types of pokemon. The dataset is obtained from https://www.kaggle.com/shikhar1/pokemon");
+      .append("p")
+    	.text("This barchart represents a dataset which cointains all pokemon. The goal of the dataset is to group all the types of pokemon. The dataset is obtained from https://www.kaggle.com/shikhar1/pokemon");
 
-    d3.json("/pokemon.json", function(data) {
+      d3.json("/pokemon.json", function(data) {
 
-      var type = ["Grass", "Fire", "Water", "Bug", "Normal", "Poison",
-      "Electric", "Ground", "Fairy", "Fighting", "Psychic", "Rock", "Ghost",
-      "Ice", "Dragon", "Dark", "Steel"];
+        var type = ["Grass", "Fire", "Water", "Bug", "Normal", "Poison",
+        "Electric", "Ground", "Fairy", "Fighting", "Psychic", "Rock", "Ghost",
+        "Ice", "Dragon", "Dark", "Steel"];
 
-      var pokemon_types = [];
-      for (var i = 0;  i < type.length; i++){
-        var count = 0
+        // count how many pokémon of each type there is
+        var pokemon_types = [];
+        for (var i = 0;  i < type.length; i++){
+          var count = 0
 
-        for (var j = 0; j < data.length; j++){
-          if (data[j].type  == type[i]){
-                  count += 1
+          for (var j = 0; j < data.length; j++){
+            if (data[j].type  == type[i]){
+                    count++
+            }
           }
+          pokemon_types.push(count);
         }
-        pokemon_types.push(count);
-      }
-      var pokemon_length = pokemon_types.length
 
-      // set margin, width and height
-      var margin = {top: 10, right: 10, bottom: 50, left: 50};
-      var padding = 1;
-      var fullwidth = 750;
-      var fullheight = 400;
-      var width = 700 - margin.left - margin.right;
-      var height = 350 - margin.top - margin.bottom;
+        // calculates largest amount in array
+        var max_of_array = Math.max.apply(Math, pokemon_types);
 
-      // Create SVG element
-      var svg = d3.select("body")
-        .append("svg")
-         .attr("width", fullwidth)
-         .attr("height", fullheight)
-        .append("g")
-         .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+        // set margin, width and height for the whole graph
+        var margin = {top: 10, right: 10, bottom: 50, left: 50};
+        var padding = 1;
+        var fullwidth = 750;
+        var fullheight = 400;
+        var width = 700 - margin.left - margin.right;
+        var height = 350 - margin.top - margin.bottom;
 
-     var x = d3.scale.ordinal()
-         .domain(type)
-         .rangeRoundBands([0, width]);
+        // obtained implementation of tooltip from: http://bl.ocks.org/Caged/6476579
+        var tip = d3.tip()
+          .attr('class', 'd3-tip')
+          .offset([-10, 0])
+          .html(function(d) {
+            return "<strong>Amount of Pokémon:</strong><span style='color:white'>" + d + "</span>";
+          })
 
-     var y = d3.scale.linear()
-        .domain([0, 50])
-        .range([height, margin.top]);
+        // create SVG element
+        var svg = d3.select("body")
+          .append("svg")
+           .attr("width", fullwidth)
+           .attr("height", fullheight)
+          .append("g")
+           .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-     var xAxis = d3.svg.axis()
-         .scale(x)
-         .orient("bottom")
-         .ticks(5);
+           svg.call(tip);
 
-     var yAxis = d3.svg.axis()
-         .scale(y)
-         .orient("left")
-         .ticks(5);
+         // scale x and y axes,
+         // use of rangeRoundBands inspired by https://bost.ocks.org/mike/bar/3/
+         var x = d3.scale.ordinal()
+             .domain(d3.range(type.length))
+             .rangeRoundBands([0, width], .05);
 
-      // create bars
-      svg.selectAll("rect")
-        .data(pokemon_types)
-        .enter()
-        .append("rect")
-        .attr("class", "bar")
-        .attr("x", function (d, i){ return ((i * width + padding) / pokemon_length);})
-        .attr("y", function (d){ return y(d);})
-        .attr("width", (width/pokemon_length))
-        .attr("height", function (d){ return height - y(d) - margin.top;})
+         var y = d3.scale.linear()
+            .domain([0, max_of_array])
+            .range([height, 0]);
 
-      svg.append("g")
-           .attr("class", "x axis")
-           .attr("transform", "translate(0," + (height - margin.top) + ")")
-           .call(xAxis)
-           .selectAll("text")
+         var xAxis = d3.svg.axis()
+             .scale(x)
+             .orient("bottom")
+             .tickFormat(function(d) { return type[d]; })
+
+         var yAxis = d3.svg.axis()
+             .scale(y)
+             .orient("left")
+
+        // create bars and hide and show tooltip
+        svg.selectAll("rect")
+          .data(pokemon_types)
+          .enter()
+          .append("rect")
+          .attr("class", "bar")
+          .attr("x", function (d, i){ return x(i);})
+          .attr("y", function (d){ return y(d);})
+          .attr("width", x.rangeBand())
+          .attr("height", function (d){ return height - y(d);})
+          .on('mouseover', tip.show)
+          .on('mouseout', tip.hide)
+
+        // provide x-axis
+        svg.append("g")
+             .attr("class", "x axis")
+             .attr("transform", "translate(0," + height + ")")
+             .call(xAxis)
+             .selectAll("text")
+              .style("text-anchor", "end")
+              .attr("dx", "-.8em")
+              .attr("dy", ".15em")
+              .attr("transform", function(d) { return "rotate(-65)"});
+
+        // provide y-axis
+        svg.append("g")
+            .attr("class", "y axis")
+            .call(yAxis)
+          .append("text")
+            .text("# Pokémons")
             .style("text-anchor", "end")
-            .attr("dx", "-.8em")
-            .attr("dy", ".15em")
-            .attr("transform", function(d) {
-                return "rotate(-65)"
-                });
-
-      svg.append("g")
-          .attr("class", "y axis")
-          .call(yAxis)
-        .append("text")
-          .text("# Pokémons")
-          .style("text-anchor", "end")
-          .attr("y", -35)
-          .attr("dy", ".201em")
-          .attr("transform", "rotate(-90)");
+            .attr("y", -35)
+            .attr("dy", ".201em")
+            .attr("transform", "rotate(-90)");
 
   });
-
-
-
 
         </script>
     </body>
