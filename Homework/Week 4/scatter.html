@@ -1,11 +1,14 @@
 <!DOCTYPE html>
 <html>
   <head>
+    <title>Scatterplot</title>
     <script src="https://d3js.org/d3.v4.min.js" charset="utf-8"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3-tip/0.7.1/d3-tip.min.js"></script>
     <link rel="stylesheet" href="scatter.css">
     <script type="text/javascript" src="scatter.js"></script>
   </head>
   <body>
+
     <script>
     // create title
     d3.select("body")
@@ -20,8 +23,9 @@
     // create a paragraph containing information
     d3.select("body")
     .append("p")
-    .text("This scatterplot represents the amount of greenhouse gas emissions produced by energy and agriculture sources in a selection of countries.");
+    .text("This scatterplot represents the amount of greenhouse gas emissions produced by energy and agriculture sources in a selection of countries. It shows the emissions from year 2010 to year 2015. ");
 
+    // source of dataset
     d3.select("body")
     .append("p")
     .text("This dataset is obtained from OECD (2018), Air and climate: Greenhouse gas emissions by source, OECD Environment Statistics (database), http://dx.doi.org/10.1787/data-00594-en (accessed on April 30th, 2018)");
