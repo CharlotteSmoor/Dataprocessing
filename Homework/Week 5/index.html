@@ -8,13 +8,25 @@
       <script src="https://d3js.org/d3-geo-projection.v1.min.js"></script>
       <script src="https://d3js.org/topojson.v2.min.js"></script>
       <script src='https://npmcdn.com/@turf/turf/turf.min.js'></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/d3-tip/0.7.1/d3-tip.min.js"></script>
   </head>
   <body>
       <link rel="stylesheet" href="queue.css">
-      <h1>Cafés en restaurants in Amsterdam</h1>
-      <h5>Charlotte Smoor (10786902)</h5>
-      <p>This dataset about cafés and restaurants in Amsterdam is obtained from "https://data.amsterdam.nl/#?dte=catalogus%2Fapi%2F3%2Faction%2Fpackage_show%3Fid%3Da968ab7f-d891-4502-b103-0f78dcc58fb8&dtfs=T&mpb=topografie&mpz=11&mpv=52.3731081:4.8932945" (accessed on April 30th, 2018)")</p>
+      <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css" integrity="sha384-WskhaSGFgHYWDcbwN70/dfYBj47jz9qbsMId/iRN3ewGhXQFZCSftd1LZCfmhktB" crossorigin="anonymous">
 
+      <div class="container-fluid">
+        <div class="alert alert-info" role="alert">
+          <i><p>Charlotte Smoor (10786902)</p></i>
+          <h4 class="alert-heading">Amsterdam: where to find your food and beverages</h4>
+        <h2></h1></br>
+        <strong><p>HOW IT WORKS</p></strong>
+        <p>The map shows all the different districts in Amsterdam. When hovering over the map not only the name of the particular district will appear, but also the name of the neighbourhood. </p>
+        <p> The barchart below the map demonstrates information about the number of restaurants and cafés in all the districts. </p> <p> The following buttons provide the data used to visualize: </p>
+
+        <button type="button" value="Input Button" onclick="location.href = 'https://data.amsterdam.nl/#?dte=catalogus%2Fapi%2F3%2Faction%2Fpackage_show%3Fid%3Da968ab7f-d891-4502-b103-0f78dcc58fb8&dtfs=T&mpb=topografie&mpz=11&mpv=52.3731081:4.8932945';">Restaurants data</button>
+        <button type="button" value="Input Button" onclick="location.href = 'https://www.amsterdam.nl/stelselpedia/bag-index/producten-bag/productspecificatie-5/';">District data</button>
+      </div>
+      </div>
   <svg width= "900" height="800" id="map"></svg>
   <script type="text/javascript" src="queue.js"></script>
 </body>

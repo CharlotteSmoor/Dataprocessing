@@ -1,22 +1,21 @@
 window.onload = function() {
 };
 
-var stadsdelen = ["A","B", "E", "M", "K", "F", "N", "T"];
+// setting variables of neighbourhoods
 var stadsdeel = {"A": "Centrum","B": "Westpoort", "E": "West", "M": "Oost", "K": "Zuid", "F": "Nieuw west", "N": "Noord", "T": "Zuidoost"}
+var stadsdelen = ["A","B", "E", "M", "K", "F", "N", "T"];
 
-var colorScale = d3.scaleOrdinal(d3.schemeCategory20),
-    colorStadsdelen = d3.scaleOrdinal(d3.schemeCategory20),
-    colorLines = d3.scaleSequential(d3.schemeCategory20);
+// setting variables for color
+var color = d3.scaleOrdinal(d3.schemeCategory20)
+var color2 = d3.scaleOrdinal(d3.schemeCategory20)
 
+// load in data using queue
 d3.queue()
   .defer(d3.json, 'EtenDrinken.json')
-  .defer(d3.json, 'sbk_code_stadsdeel.json')
   .defer(d3.json, 'sbk_postcode_stadsdeel.json')
   .awaitAll(load_data);
 
-  //data from stadsdelen: https://www.amsterdam.nl/stelselpedia/bag-index/producten-bag/productspecificatie-5/
-  //data from restaurants: https://data.amsterdam.nl/#?dte=catalogus%2Fapi%2F3%2Faction%2Fpackage_show%3Fid%3Da968ab7f-d891-4502-b103-0f78dcc58fb8&dtfs=T&mpb=topografie&mpz=11&mpv=52.3731081:4.8932945
-
+// make data ready for use
   function load_data(error, data){
     d3.json('EtenDrinken.json', function(error, horeca) {
       d3.json('sbk_postcode_stadsdeel.json', function(error, postcode) {
@@ -24,6 +23,8 @@ d3.queue()
       var buurten_list = []
       for (var h = 0; h < stadsdelen.length; h++ ){
         var count = 0;
+
+        // compares zipcodes of restaurants to zipcodes of neighbourhoods
         for (var i = 1; i < horeca.length; i++){
           for (var j = 1; j < postcode.length; j++){
             if (postcode[j]["stadsdeel"] == stadsdelen[h]){
@@ -31,7 +32,8 @@ d3.queue()
                   horeca[i]["zipcode"].replace(/\s/g,'').localeCompare(postcode[j]["postcode_max"]) == -1) ||
                   horeca[i]["zipcode"].replace(/\s/g,'').localeCompare(postcode[j]["postcode_min"]) == 0 ||
                   horeca[i]["zipcode"].replace(/\s/g,'').localeCompare(postcode[j]["postcode_max"]) == 0){
-                    var buurt = stadsdelen[h];
+                    //var buurt_code = stadsdelen[h];
+                    var buurt = stadsdeel[stadsdelen[h]]
                     count++;
                 }
               }
@@ -40,21 +42,23 @@ d3.queue()
         buurten_list.push({Buurt : buurt, Restaurants : count})
     }
 
-  //make_map()
-  build_barchart(buurten_list)
+  make_map(buurten_list)
 })
 })
 }
 
-function make_map(error, data) {
-  if (error) throw error;
+// creates map of Amsterdam
+// implementation of map inspired by https://github.com/JulesBlm/RailAmsterdam
+function make_map(buurten_list) {
   d3.json('buurten.json', function(error, buurten) {
+    if (error) throw error;
 
-    var margin = {top: 40, right: 40, bottom: 40, left: 40};
+    var data_buurten = topojson.feature(buurten, buurten.objects.buurten).features
 
     var svg = d3.select("#map"),
         width = +svg.attr("width"),
         height = +svg.attr("height");
+
 
     var projection = d3.geoAlbers()
       .center([4.9, 52.366667])
@@ -66,43 +70,43 @@ function make_map(error, data) {
     var path = d3.geoPath()
       .projection(projection);
 
-    svg.append("text")
-      .attr("x", 0)
-      .attr("y", 15)
-      .attr("font-size", "large")
-      .attr("text-decoration", "underline")
-      .attr("font-weight", "bold")
-      .text("Map" );
-
-  // Draw the neighbourhoods
+  // draws neighbourhoods
   svg.selectAll(".buurt")
-      .data(topojson.feature(buurten, buurten.objects.buurten).features)
+      .data(data_buurten)
     .enter().insert("g")
       .append("path")
         .attr("class", "buurt")
         .attr("d", path)
-        .attr("fill", function(d) { return colorStadsdelen(d.properties.Stadsdeel_code[0]) })
+        .attr("fill", function(d) { return color(d.properties.Stadsdeel_code[0]) })
       .append("title")
         .text(function(d) { return stadsdeel[d.properties.Stadsdeel_code] + ": " + d.properties.Buurtcombinatie });
 
-  // Draw borders around the neighbourhoods
+
+  // draws borders around neighbourhoods
   svg.append("path")
       .attr("class", "buurt-borders")
       .attr("d", path(topojson.mesh(buurten, buurten.objects.buurten, function(a, b) { return a !== b; })));
 
-  // Draw borders around stadsdelen
+  // draws borders around districts
   svg.append("path")
       .attr("class", "stadsdeel-borders")
       .attr("d", path(topojson.mesh(buurten, buurten.objects.buurten, function(a, b) { return stadsdeel[a.properties.Stadsdeel_code] !== stadsdeel[b.properties.Stadsdeel_code]; })));
 
-})
-};
+  build_barchart(buurten_list)
 
+  svg.on("click", function() {
+    update_barchart(buurten_list)
+
+  })
+});
+
+// creates barchart
 function build_barchart(buurten_list){
   var margin = {top: 20, right: 20, bottom: 30, left: 40},
         width = 960 - margin.left - margin.right,
           height = 500 - margin.top - margin.bottom;
 
+      // setting x and y-axes
       var x = d3.scaleBand()
       			.range([0, width], .1);
 
@@ -114,19 +118,28 @@ function build_barchart(buurten_list){
       var yAxis = d3.axisLeft(y)
           .ticks(10);
 
-      var svg = d3.select("body").append("svg")
+      var svg = d3.select("body")
+          .append("svg")
           .attr("width", width + margin.left + margin.right)
           .attr("height", height + margin.top + margin.bottom)
-        .append("g")
+          .append("g")
           .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+      var tool_tip = d3.tip()
+            .attr("class", "d3-tip")
+            .offset([-8, 0])
+            .html(function(d) { return "Restaurants: " + d.Restaurants; });
+          svg.call(tool_tip);
 
         x.domain(buurten_list.map(function(d) { return d.Buurt; }))
         	.paddingInner(0.1)
         	.paddingOuter(0.5);
+
         y.domain([0, d3.max(buurten_list, function(d) { return d.Restaurants; })]);
 
         svg.append("g")
             .attr("class", "x axis")
+            .attr("id", "xaxis")
             .attr("transform", "translate(0," + height + ")")
             .call(xAxis)
             .append("text")
@@ -138,6 +151,7 @@ function build_barchart(buurten_list){
 
         svg.append("g")
             .attr("class", "y axis")
+            .attr("id", "yaxis")
             .call(yAxis)
           .append("text")
             .attr("class", "label")
@@ -151,31 +165,29 @@ function build_barchart(buurten_list){
             .data(buurten_list)
           .enter().append("rect")
             .attr("class", "bar")
+            .attr("id", "bar")
             .attr("x", function(d) { return x(d.Buurt); })
             .attr("width", x.bandwidth())
-            .attr("fill", function(d) { return colorStadsdelen(d.Buurt) })
+            .attr("fill", function(d) { return color2(d.Buurt); })
             .attr("y", function(d) { return y(d.Restaurants); })
-            .attr("height", function(d) { return height - y(d.Restaurants); });
-
-            var legend = svg.selectAll(".legend")
-             .data(colorScale.domain())
-             .enter().append("g")
-             .attr("class", "legend")
-             .attr("transform", function(d, i) { return "translate(0," + i * 20 + ")"; });
-
-             legend.append("rect")
-                 .attr("x", width  )
-                 .attr("y", 150)
-                 .attr("width", 18)
-                 .attr("height", 14)
-                 .style("fill", colorScale);
-
-             legend.append("text")
-                 .attr("x", width - 10)
-                 .attr("y", 150)
-                 .attr("dy", ".40em")
-                 .style("text-anchor", "end")
-                 .text(function(d) { return d.Buurt; });
-
+            .attr("height", function(d) { return height - y(d.Restaurants); })
+            .on('mouseover', tool_tip.show)
+            .on('mouseout', tool_tip.hide);
 
 }
+
+    // updates barchart
+    function update_barchart(){
+
+      // inspired by http://bl.ocks.org/d3noob/5d621a60e2d1d02086bf
+      var active   = bar.active ? false : true,
+            newOpacity = active ? 0 : 1;
+
+          // hides or shows barchart
+          d3.selectAll(".bar").style("opacity", newOpacity);
+          d3.selectAll("#xaxis").style("opacity", newOpacity);
+          d3.selectAll("#yaxis").style("opacity", newOpacity);
+
+          bar.active = active;
+    }
+	};
